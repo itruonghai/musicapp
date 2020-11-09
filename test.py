@@ -90,7 +90,13 @@ def test(data,
     if not training:
         img = torch.zeros((1, 3, imgsz, imgsz), device=device)  # init img
         _ = model(img.half() if half else img) if device.type != 'cpu' else None  # run once
-        path = data['test'] if opt.task == 'test' else data['val']  # path to val/test images
+        if opt.task == 'test':
+            path = data['test']
+        elif opt.task == 'val':
+            path = data['val']
+        else: 
+            path = data['study']
+        # path = data['test'] if opt.task == 'test' else data['val']  # path to val/test images
         dataloader = create_dataloader(path, imgsz, batch_size, model.stride.max(), opt,
                                        hyp=None, augment=False, cache=False, pad=0.5, rect=True)[0]
 
@@ -246,7 +252,10 @@ def test(data,
     # Save JSON
     if save_json and len(jdict):
         w = Path(weights[0] if isinstance(weights, list) else weights).stem if weights is not None else ''  # weights
-        file = save_dir / f"detections_val2017_{w}_results.json"  # predicted annotations file
+        if opt.task != 'study':
+            file = save_dir / f"detections_val2017_{w}_results.json"  # predicted annotations file
+        else:
+            file = save_dir / f"hope.json"
         print('\nCOCO mAP with pycocotools... saving %s...' % file)
         with open(file, 'w') as f:
             json.dump(jdict, f)
@@ -256,7 +265,7 @@ def test(data,
             from pycocotools.cocoeval import COCOeval
 
             imgIds = [int(Path(x).stem) for x in dataloader.dataset.img_files]
-            cocoGt = COCO(glob.glob('/content/yolov5/dataset/annotations/test.json')[0])  # initialize COCO ground truth api
+            cocoGt = COCO(glob.glob('/content/yolov5/dataset/annotations/val.json')[0])  # initialize COCO ground truth api
             cocoDt = cocoGt.loadRes(str(file))  # initialize COCO pred api
             cocoEval = COCOeval(cocoGt, cocoDt, 'bbox')
             cocoEval.params.imgIds = imgIds  # image IDs to evaluate
@@ -282,7 +291,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch-size', type=int, default=32, help='size of each image batch')
     parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.001, help='object confidence threshold')
-    parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
+    parser.add_argument('--iou-thres', type=float, default=0.84, help='IOU threshold for NMS')
     parser.add_argument('--save-json', action='store_true', help='save a cocoapi-compatible JSON results file')
     parser.add_argument('--task', default='val', help="'val', 'test', 'study'")
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
@@ -316,14 +325,20 @@ if __name__ == '__main__':
         print('Results saved to %s' % opt.save_dir)
 
     elif opt.task == 'study':  # run over a range of settings and save/plot
-        for weights in ['yolov5s.pt', 'yolov5m.pt', 'yolov5l.pt', 'yolov5x.pt']:
-            f = 'study_%s_%s.txt' % (Path(opt.data).stem, Path(weights).stem)  # filename to save to
-            x = list(range(320, 800, 64))  # x axis
-            y = []  # y axis
-            for i in x:  # img-size
-                print('\nRunning %s point %s...' % (f, i))
-                r, _, t = test(opt.data, weights, opt.batch_size, i, opt.conf_thres, opt.iou_thres, opt.save_json)
-                y.append(r + t)  # results and times
-            np.savetxt(f, y, fmt='%10.4g')  # save
-        os.system('zip -r study.zip study_*.txt')
+        test(opt.data,
+             opt.weights,
+             opt.batch_size,
+             opt.img_size,
+             opt.conf_thres,
+             opt.iou_thres,
+             opt.save_json,
+             opt.single_cls,
+             opt.augment,
+             opt.verbose,
+             save_dir=Path(opt.save_dir),
+             save_txt=opt.save_txt,
+             save_conf=opt.save_conf,
+             )
+
+        print('Results saved to %s' % opt.save_dir)
         # utils.general.plot_study_txt(f, x)  # plot
