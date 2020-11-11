@@ -255,7 +255,7 @@ def test(data,
         if opt.task != 'study':
             file = save_dir / f"detections_val2017_{w}_results.json"  # predicted annotations file
         else:
-            file = save_dir / f"hope.json"
+            file = save_dir / f"hope49.json"
         print('\nCOCO mAP with pycocotools... saving %s...' % file)
         with open(file, 'w') as f:
             json.dump(jdict, f)
@@ -294,7 +294,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch-size', type=int, default=32, help='size of each image batch')
     parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.001, help='object confidence threshold')
-    parser.add_argument('--iou-thres', type=float, default=0.84, help='IOU threshold for NMS')
+    parser.add_argument('--iou-thres', type=float, default=0.90, help='IOU threshold for NMS')
     parser.add_argument('--save-json', action='store_true', help='save a cocoapi-compatible JSON results file')
     parser.add_argument('--task', default='val', help="'val', 'test', 'study'")
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
