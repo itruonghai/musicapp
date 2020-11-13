@@ -13,7 +13,7 @@ download: https://github.com/ultralytics/yolov5/releases/download/v1.0/coco128.z
 train: dataset/images/train/  # 128 images
 val: dataset/images/val/  # 128 images
 test: dataset/images/test/
-study: /content/traffic_public_test/images
+study: dataset/images/public_test_set/
 # number of classes
 nc: 7
 

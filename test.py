@@ -269,6 +269,8 @@ def test(data,
                 cocoGt = COCO(glob.glob('/content/yolov5/dataset/annotations/val.json')[0])  # initialize COCO ground truth api
             elif opt.task == 'test':   
                 cocoGt = COCO(glob.glob('/content/yolov5/dataset/annotations/test.json')[0])
+            else:
+                cocoGt = COCO(glob.glob('/content/yolov5/dataset/annotations/public_test_set.json')[0])
             cocoDt = cocoGt.loadRes(str(file))  # initialize COCO pred api
             cocoEval = COCOeval(cocoGt, cocoDt, 'bbox')
             cocoEval.params.imgIds = imgIds  # image IDs to evaluate
